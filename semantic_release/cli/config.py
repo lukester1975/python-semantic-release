@@ -28,7 +28,7 @@ from semantic_release.commit_parser import (
 )
 from semantic_release.const import COMMIT_MESSAGE, DEFAULT_COMMIT_AUTHOR, SEMVER_REGEX
 from semantic_release.errors import InvalidConfiguration, NotAReleaseBranch
-from semantic_release.helpers import dynamic_import
+from semantic_release.helpers import dynamic_import, parse_git_url
 from semantic_release.hvcs import Gitea, Github, Gitlab, HvcsBase
 from semantic_release.version import VersionTranslator
 from semantic_release.version.declaration import (
@@ -342,9 +342,14 @@ class RuntimeContext:
         elif not token:
             log.debug("hvcs token is not set")
 
+        hvcs_domain = (
+            cls.resolve_from_env(raw.remote.domain)
+            or parse_git_url(remote_url).netloc.split("@")[-1]
+        )
+
         hvcs_client = hvcs_client_cls(
             remote_url=remote_url,
-            hvcs_domain=cls.resolve_from_env(raw.remote.domain),
+            hvcs_domain=hvcs_domain,
             hvcs_api_domain=cls.resolve_from_env(raw.remote.api_domain),
             token=token,
         )
